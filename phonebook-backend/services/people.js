@@ -79,7 +79,7 @@ function onDeleteRequest(request, response) {
 */
 function onAddPerson(request, response) {
     let person = request.body
-    if (!isValidString(person.name) || !isValidString(person.phone)) {
+    if (!isValidString(person.name) || !isValidString(person.number)) {
         response.status(400)
         return response.json({error: "invalid person object"})
                 .end()

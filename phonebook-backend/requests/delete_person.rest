@@ -1,3 +1,3 @@
-DELETE http://localhost:3001/api/persons/1 HTTP/1.1
+DELETE https://phonebook-1n1q.onrender.com/api/persons/1 HTTP/1.1
 ###
-DELETE http://localhost:3001/api/persons/9999 HTTP/1.1
+DELETE https://phonebook-1n1q.onrender.com/persons/9999 HTTP/1.1
