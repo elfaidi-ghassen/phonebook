@@ -1,7 +1,6 @@
 const express = require("express")
 const morgan = require("morgan")
 const peopleAPI = require("./services/people.js")
-const PORT = 3001
 const app = express()
 
 
@@ -32,7 +31,9 @@ app.post("/api/persons", peopleAPI.onAddPerson)
 app.get("/info", onGetInfoPage)
 
 /* Start the server */
+const PORT = process.env.PORT || 3001 
 app.listen(PORT, onServerStart)
+
 
 
 function onServerStart() {
@@ -89,6 +90,7 @@ function getRequestBody(req, res) {
  * PRE: tokens.body(req, res) !== undefined // use express-json middleware
  * POST: customMorganFormat(tokens, req, res) => string
  */
+
 function customMorganFormat(tokens, req, res) {
     return [
         tokens.method(req, res),
