@@ -4,8 +4,8 @@ const cors = require("cors")
 const peopleAPI = require("./services/people.js")
 const app = express()
 
-
 app.use(cors())
+app.use(express.static("dist"))
 app.use(express.json())
 
 // define a new token, than can be used later with tokens.body
