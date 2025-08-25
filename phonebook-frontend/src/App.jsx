@@ -194,7 +194,6 @@ const App = () => {
     return persons.find(person =>
              person.name == name)
   }
-
   // filterByName(string) => <function object>
   // return a predicate function to test of the name contains a search string
   // if searchString is empty, then the returned predicate always produce true

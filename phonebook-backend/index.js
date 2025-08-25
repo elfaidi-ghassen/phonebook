@@ -9,12 +9,12 @@ app.use(express.static("dist"))
 app.use(express.json())
 
 // define a new token, than can be used later with tokens.body
-morgan.token('body', getRequestBody)
+morgan.token("body", getRequestBody)
 app.use(morgan(customMorganFormat))
 
 
- 
-/** 
+
+/**
  * API DETAILS
  * [GET /api/persons] the list of all people in the phonebook
  *   --> [{person1}, {person2}, ...]
@@ -36,12 +36,12 @@ app.use(errorHandler)
 
 
 /* Start the server */
-const PORT = process.env.PORT || 3001 
+const PORT = process.env.PORT || 3001
 app.listen(PORT, onServerStart)
 
- 
+
 function onServerStart() {
-    console.log(`The server is running on port ${PORT}...`)
+  console.log(`The server is running on port ${PORT}...`)
 }
 
 
@@ -49,38 +49,33 @@ function onServerStart() {
 
 
 // custom middlewares
-function unknownEndpoint(request, response, next) {
-    response.status(404).send({error: "unkown endpoint"})
+function unknownEndpoint(request, response) {
+  response.status(404).send({ error: "unkown endpoint" })
 }
 function errorHandler(error, request, response, next) {
-    if (error.name === "CastError") {
-        return response.status(400).send({ "error": "malformatted id" })
-    }  
+  if (error.name === "CastError") {
+    return response.status(400).send({ "error": "malformatted id" })
+  }
 
-    if (error.name === "ValidationError") {
-        return response.status(400).send({ "error": error.message })
-    }
-    next(error) // pass to the default error handler
+  if (error.name === "ValidationError") {
+    return response.status(400).send({ "error": error.message })
+  }
+  next(error) // pass to the default error handler
 }
-
-
-
-
 
 
 /**
- * PRE: 
  * POST: respond with HTML string
  * POST: response.get("Content-Type")
- *          .includes("text/html") === true  
+ *          .includes("text/html") === true
  */
 function onGetInfoPage(request, response) {
-    peopleAPI
+  peopleAPI
     .getAllPromise()
     .then(phonebook => {
-        const HTMLresponse = createInfoPageString(phonebook, Date());
-        response.set("Content-Type", "text/html")
-        response.send(HTMLresponse).end();
+      const HTMLresponse = createInfoPageString(phonebook, Date())
+      response.set("Content-Type", "text/html")
+      response.send(HTMLresponse).end()
 
     })
 }
@@ -90,30 +85,30 @@ function onGetInfoPage(request, response) {
  *      date: Date object (current time)
  * PRE: phonebook != null
  * PRE: date != null
- */ 
+ */
 function createInfoPageString(phonebook, date) {
-    let HTMLresponse = ""
-    if (phonebook.length == 0) {
-        HTMLresponse += `<div>Phonebook has no records</div>`
-    } else if (phonebook.length == 1) {
-        HTMLresponse += `<div>Phonebook has info for 1 person</div>`
-    } else {
-        HTMLresponse += `<div>Phonebook has info for ${phonebook.length} people</div>`
-    }
-    HTMLresponse += `<div>${date}</div>`
-    return HTMLresponse
+  let HTMLresponse = ""
+  if (phonebook.length == 0) {
+    HTMLresponse += "<div>Phonebook has no records</div>`"
+  } else if (phonebook.length == 1) {
+    HTMLresponse += "<div>Phonebook has info for 1 person</div>"
+  } else {
+    HTMLresponse += `<div>Phonebook has info for ${phonebook.length} people</div>`
+  }
+  HTMLresponse += `<div>${date}</div>`
+  return HTMLresponse
 }
 
 /**
- * Helper functions for morgan middleware logging 
- * */ 
+ * Helper functions for morgan middleware logging
+ * */
 
 /**
  * PRE: req.body !== undefined // use the express-json middleware
  * POST: typeof(getRequestBody(req, res)) is javascript object
  */
-function getRequestBody(req, res) {
-    return req.body
+function getRequestBody(req) {
+  return req.body
 }
 
 /**
@@ -124,13 +119,14 @@ function getRequestBody(req, res) {
  */
 
 function customMorganFormat(tokens, req, res) {
-    return [
-        tokens.method(req, res),
-        tokens.url(req, res),
-        tokens.status(req, res),
-        tokens.res(req, res, 'content-length'), '-',
-        tokens['response-time'](req, res), 'ms',
-        tokens.method(req, res) === "POST" ? 
-            JSON.stringify(tokens.body(req, res)) : "",
-    ].join(" ")
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, "content-length"), "-",
+    tokens["response-time"](req, res), "ms",
+    tokens.method(req, res) === "POST"
+      ? JSON.stringify(tokens.body(req, res))
+      : "",
+  ].join(" ")
 }

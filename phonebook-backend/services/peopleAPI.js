@@ -8,26 +8,26 @@ let Person = require("../models/person")
 
 /**
  * Module Invariants
- * INV: phonebook must be javascript array 
+ * INV: phonebook must be javascript array
  *      conta ining object representing people
- * INV: phonebook !== null && phonebook !== undefined 
+ * INV: phonebook !== null && phonebook !== undefined
  * NOTE: empty array [] represents there are no people records
  */
 
 
 /**
  * POST: phonebook sent as a JSON string
- * POST: the response has Content-Type: application/json 
+ * POST: the response has Content-Type: application/json
  */
 function onGetAllRequest(request, response) {
-    Person
+  Person
     .find({})
     .then(phonebook => {
-        response.json(phonebook)
+      response.json(phonebook)
     })
 }
 function getAllPromise() {
-    return Person.find({})
+  return Person.find({})
 }
 
 
@@ -41,16 +41,16 @@ function getAllPromise() {
  *      NOTE: the status message appears in the response after the status code
  */
 function onGetPersonRequest(request, response, next) {
-    Person
+  Person
     .findById(request.params.id)
-    .then(person => { 
-        if (!person) {
-            response.statusMessage = `no person with id ${request.params.id}`
-            response.status(404).end()
-        } else {
-            response.json(person).end()
-    }}).catch(error => {
-        next(error)
+    .then(person => {
+      if (!person) {
+        response.statusMessage = `no person with id ${request.params.id}`
+        response.status(404).end()
+      } else {
+        response.json(person).end()
+      }}).catch(error => {
+      next(error)
     })
 }
 
@@ -58,24 +58,24 @@ function onGetPersonRequest(request, response, next) {
  * onPutPerson
  */
 function onPutPerson(request, response, next) {
-    const id = request.params.id
-    const {name, number} = request.body
-    Person
+  const id = request.params.id
+  const { name, number } = request.body
+  Person
     .findById(id)
     .then(person => {
-        if (!person)
-            return response
-                    .status(404)
-                    .json({error: `Error: person with id ${id} not found`})
-                    .end()
-        person.name = name;
-        person.number = number
-        return person.save()
+      if (!person)
+        return response
+          .status(404)
+          .json({ error: `Error: person with id ${id} not found` })
+          .end()
+      person.name = name
+      person.number = number
+      return person.save()
     })
     .then(newPerson => response.json(newPerson).end())
     .catch(next)
 }
- 
+
 /**
  * If the request's id is not found, respond with 404 not found error
  * Otherwise, if the person id exists, remove we remove the person
@@ -85,13 +85,13 @@ function onPutPerson(request, response, next) {
  * POST: [if id exists] phonebook.length decremented by one
 */
 function onDeleteRequest(request, response, next) {
-    const id = request.params.id // string
-    Person
+  const id = request.params.id // string
+  Person
     .findByIdAndDelete(id)
-    .then(deletedPerson => {
-        response.status(204).end()
+    .then(() => {
+      response.status(204).end()
     })
-    .catch(next) 
+    .catch(next)
 }
 
 /**
@@ -105,59 +105,59 @@ function onDeleteRequest(request, response, next) {
  *            .includes("application/json") === true
  * POST: [if the name or phone number has invalid format] OR
  *       [if name already exists]
- *       send a response header with 400 status code (aka "Bad Request") 
+ *       send a response header with 400 status code (aka "Bad Request")
  * POST: [if the name or phone number has invalid format] OR
  *       [if name already exists]
- *       send an object that explains the error 
+ *       send an object that explains the error
  *          {"error": "...error message..."}
 */
 function onAddPerson(request, response, next) {
-    let {name, number} = request.body
-    Person
+  let { name, number } = request.body
+  Person
     .find({})
     .then(phonebook => {
-        if (alreadyUsedName(phonebook, name))
-            throw createValidationError("Error: person name already exists in the phonebook")
+      if (alreadyUsedName(phonebook, name))
+        throw createValidationError("Error: person name already exists in the phonebook")
     })
-    .then(() => Person({name, number}).save())
+    .then(() => Person({ name, number }).save())
     .then(savedPerson => {
-        response
+      response
         .status(201)
         .json(savedPerson)
         .end()
-    })       
+    })
     .catch(
-        error => {
-            next(error)
-        }
-        ) 
+      error => {
+        next(error)
+      }
+    )
 }
 
 /**
- * createValidationError(string) => Error 
+ * createValidationError(string) => Error
 */
 function createValidationError(message) {
-    let error = new Error(message)
-    error.name = "ValidationError"
-    return error
+  let error = new Error(message)
+  error.name = "ValidationError"
+  return error
 }
 
 /**
- * alreadyUsedName(phonebook: [{person}, ...], name: string) 
+ * alreadyUsedName(phonebook: [{person}, ...], name: string)
  *              => boolean
  */
 function alreadyUsedName(phonebook, name) {
-    return phonebook
-          .map(person => person.name)
-          .includes(name)
+  return phonebook
+    .map(person => person.name)
+    .includes(name)
 }
 
 
 
-module.exports = { 
-    onGetAllRequest,
-    onGetPersonRequest,
-    onDeleteRequest,
-    onAddPerson,
-    onPutPerson,
-    getAllPromise } 
+module.exports = {
+  onGetAllRequest,
+  onGetPersonRequest,
+  onDeleteRequest,
+  onAddPerson,
+  onPutPerson,
+  getAllPromise }
