@@ -1,7 +1,9 @@
+require("dotenv").config()
 const express = require("express")
 const morgan = require("morgan")
-const peopleAPI = require("./services/people.js")
+const peopleAPI = require("./services/peopleAPI.js")
 const app = express()
+
 
 app.use(express.static("dist"))
 app.use(express.json())
@@ -26,19 +28,45 @@ app.get("/api/persons", peopleAPI.onGetAllRequest)
 app.get("/api/persons/:id", peopleAPI.onGetPersonRequest)
 app.delete("/api/persons/:id", peopleAPI.onDeleteRequest)
 app.post("/api/persons", peopleAPI.onAddPerson)
-
-
+app.put("/api/persons/:id", peopleAPI.onPutPerson)
 app.get("/info", onGetInfoPage)
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
+
 
 /* Start the server */
 const PORT = process.env.PORT || 3001 
 app.listen(PORT, onServerStart)
 
-
-
+ 
 function onServerStart() {
     console.log(`The server is running on port ${PORT}...`)
 }
+
+
+
+
+
+// custom middlewares
+function unknownEndpoint(request, response, next) {
+    response.status(404).send({error: "unkown endpoint"})
+}
+function errorHandler(error, request, response, next) {
+    if (error.name === "CastError") {
+        return response.status(400).send({ "error": "malformatted id" })
+    }  
+
+    if (error.name === "ValidationError") {
+        return response.status(400).send({ "error": error.message })
+    }
+    next(error) // pass to the default error handler
+}
+
+
+
+
+
 
 /**
  * PRE: 
@@ -47,10 +75,14 @@ function onServerStart() {
  *          .includes("text/html") === true  
  */
 function onGetInfoPage(request, response) {
-    const phonebook = peopleAPI.getPhonebookCopy()
-    const HTMLresponse = createInfoPageString(phonebook, Date());
-    response.set("Content-Type", "text/html")
-    response.send(HTMLresponse).end();
+    peopleAPI
+    .getAllPromise()
+    .then(phonebook => {
+        const HTMLresponse = createInfoPageString(phonebook, Date());
+        response.set("Content-Type", "text/html")
+        response.send(HTMLresponse).end();
+
+    })
 }
 /**
  * createInfoPageString(phonebook, date) => string

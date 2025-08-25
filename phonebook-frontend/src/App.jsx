@@ -90,6 +90,11 @@ const App = () => {
   // for the search by name <input> field
   const [searchString, setSearchString] = useState("")
 
+  ///> State: reload
+  // use to trigger reload in the loadPeopleRecords effect
+  // increment the value
+  const [reloadCounter, setReloadCounter] = useState(0)
+
   ///> State: message
   // represent the error/info message displayed to the user
   // {type: string, content: string}
@@ -97,7 +102,7 @@ const App = () => {
   const messageDisplayDuration = 4000
   
   useEffect(resetNotificationMessage, [message])
-  useEffect(loadPeopleRecords, [])
+  useEffect(loadPeopleRecords, [reloadCounter])
 
   
   
@@ -133,7 +138,6 @@ const App = () => {
   /// Helper Functions
 
 
-  // TODO
   function loadPeopleRecords() {
     personService
           .getAll()
@@ -141,7 +145,6 @@ const App = () => {
               setPersons(persons))
   }
 
-  // TODO
   function resetNotificationMessage() {
     if (message === null) return;
       setTimeout(
@@ -170,14 +173,10 @@ const App = () => {
     
     personService
       .deleteById(id)
-      .then(() => {
-        setPersons(persons.filter(person => person.id != id))
-      })
+      .then(() => setReloadCounter(reloadCounter + 1))
       .catch((error) => {
-        let messageContent = 
-        `Information about ${getPerson(id).name} has already been deleted from server`;
-        setMessage({type: "error", content: messageContent})
-        setPersons(persons.filter(person => person.id != id))
+        setMessage({type: "error", content: error.response.data.error})
+        setReloadCounter(reloadCounter + 1)
       })
   } 
 
@@ -240,17 +239,20 @@ const App = () => {
       let id = personByName(newPerson.name).id
       personService
         .update(id, {id, ...newPerson})
-        .then((updatedPerson) => {
+        .then(updatedPerson => {
           setPersons(persons.map(person =>
             person.id == id ? updatedPerson: person))
           let messageContent = `phone number of ${updatedPerson.name} was updated`
-          setMessage({type: "error", content: messageContent})
-
+          setMessage({type: "info", content: messageContent})
         })
-        .catch((error) => {
-          let messageContent = "already deleted from server"
-          setMessage({type: "error", content: messageContent})
-          setPersons(persons.filter(person => person.id != id))
+        .catch(error => {
+          setMessage({type: "error", content: error.response.data.error})
+          // we should reload the data if some error occurs
+          // to make sure the displayed data is consistent
+          // e.g. if you try to update a person who was deleted
+          // it will raise an exception, that will be caught here
+          // and then we need to load the phonebook data
+          setReloadCounter(reloadCounter + 1)
         })
     } else {
       addNewPerson(newPerson);
@@ -280,6 +282,15 @@ const App = () => {
           content: `Added ${addedPerson.name}`
         })
       })
+      .catch(error => {
+        setMessage({
+          type: "error",
+          // the server responded with {"error": "message..."}
+          content: error.response.data.error
+        })
+        setReloadCounter(reloadCounter + 1)
+      })
+      
 
   }
 
